@@ -20,7 +20,7 @@ services:
     ports:
       - "${APP_PORT:-8000}:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3).read()\""]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -38,6 +38,8 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - team-internal
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lab05}"]
       interval: 10s
@@ -46,16 +48,17 @@ services:
 
   # AI service mẫu dùng Python HTTP server hoặc FastAPI
   ai-service:
-    image: python:3.11-slim
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: fit4110-ai-lab05
-    working_dir: /service
-    volumes:
-      - ./src/ai_service:/service
-    command: ["python", "main.py"]
+    command: ["python", "src/ai_service/main.py"]
     networks:
       - team-internal
+    ports:
+      - "9000:9000"
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import requests; import sys; sys.exit(0) if requests.get('http://localhost:9000/health').status_code == 200 else sys.exit(1)\""]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9000/health', timeout=3).read()\""]
       interval: 30s
       timeout: 5s
       retries: 3
