@@ -28,7 +28,7 @@ jobs:
 
       # 3. Tạo .env từ .env.example (không dùng secret thật)
       - name: Create .env from example
-        run: cp .env.example .env
+        run: tr -d '\r' < .env.example > .env
 
       # 4. Lint docker-compose.yml (kiểm tra cú pháp)
       - name: Lint docker-compose.yml
